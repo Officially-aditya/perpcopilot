@@ -1,0 +1,317 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0e0e0e;
+  --surface: #0e0e0e;
+  --surface-low: #131313;
+  --surface-high: #201f1f;
+  --surface-highest: rgba(38, 38, 38, 0.6);
+  --border: rgba(73, 72, 71, 0.18);
+  --text-primary: #ffffff;
+  --text-secondary: #adaaaa;
+  --text-muted: #777575;
+  --green: #9cff93;
+  --green-solid: #00ff41;
+  --red: #ff7351;
+  --amber: #9cff93;
+  --blue: #00e3fd;
+  --chart-grid: #1a1a1a;
+  --font-ibm-plex-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-jetbrains-mono: "Space Grotesk", ui-monospace, SFMono-Regular, monospace;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(156, 255, 147, 0.08), transparent 26%),
+    radial-gradient(circle at top right, rgba(0, 227, 253, 0.06), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0)),
+    var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-ibm-plex-sans), sans-serif;
+  text-rendering: geometricPrecision;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer components {
+  .terminal-input {
+    width: 100%;
+    border: 0;
+    border-bottom: 2px solid rgba(73, 72, 71, 0.5);
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 1.125rem;
+    line-height: 1.6;
+    outline: none;
+  }
+
+  .terminal-input:focus {
+    border-color: rgba(156, 255, 147, 1);
+    box-shadow: 0 18px 48px rgba(156, 255, 147, 0.08);
+  }
+
+  .metric-label {
+    color: var(--blue);
+    font-family: var(--font-jetbrains-mono), monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .metric-value {
+    color: var(--text-primary);
+    font-family: var(--font-jetbrains-mono), monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chart-caption {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.95rem;
+    line-height: 1.9;
+    margin-left: 40px;
+  }
+
+.chart-tooltip {
+  border: 1px solid rgba(73, 72, 71, 0.15);
+  background: rgba(32, 31, 31, 0.84);
+  backdrop-filter: blur(20px);
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+
+.kinetic-glow {
+  background: radial-gradient(circle at 50% 50%, rgba(156, 255, 147, 0.06) 0%, transparent 70%);
+}
+
+.kinetic-scanline {
+  background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.5) 51%);
+  background-size: 100% 4px;
+}
+
+.kinetic-wireframe {
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(156, 255, 147, 0.08), transparent 20%),
+    linear-gradient(rgba(138, 242, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(138, 242, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(156, 255, 147, 0.12), transparent 35%),
+    linear-gradient(45deg, transparent 62%, rgba(0, 227, 253, 0.12) 63%, transparent 64%);
+  background-size: auto, 84px 84px, 84px 84px, 100% 100%, 100% 100%;
+  background-position: center, center, center, center, center;
+  mix-blend-mode: screen;
+}
+
+.console-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.console-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 20%, rgba(156, 255, 147, 0.04), transparent 30%);
+}
+
+.console-main {
+  position: relative;
+  z-index: 1;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+.console-section {
+  position: relative;
+  background: linear-gradient(180deg, rgba(19, 19, 19, 0.94), rgba(19, 19, 19, 0.72));
+  padding: 40px 32px;
+}
+
+.console-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 10% 0%, rgba(156, 255, 147, 0.05), transparent 30%);
+  pointer-events: none;
+}
+
+.console-overlay {
+  background: rgba(32, 31, 31, 0.8);
+  backdrop-filter: blur(20px);
+}
+
+.console-void {
+  display: grid;
+  gap: 128px;
+}
+
+.console-subvoid {
+  display: grid;
+  gap: 72px;
+}
+
+.console-headline {
+  font-family: var(--font-jetbrains-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+}
+
+.console-display {
+  font-family: var(--font-jetbrains-mono), monospace;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: clamp(2.5rem, 5vw, 5rem);
+  line-height: 0.92;
+}
+
+.console-hanging {
+  margin-left: 40px;
+}
+
+.console-kicker {
+  color: var(--text-muted);
+  font-family: var(--font-jetbrains-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.72rem;
+}
+
+.console-button-primary {
+  background: #00fc40;
+  color: #00440a;
+  border: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-family: var(--font-jetbrains-mono), monospace;
+}
+
+.console-button-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid rgba(73, 72, 71, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-family: var(--font-jetbrains-mono), monospace;
+}
+
+.console-button-secondary:hover {
+  background: rgba(156, 255, 147, 0.08);
+  color: var(--green);
+}
+
+.console-button-tertiary {
+  background: transparent;
+  color: var(--blue);
+  border: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-family: var(--font-jetbrains-mono), monospace;
+}
+
+.console-grid-lines {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 100% 52px;
+}
+
+.console-monodata {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.detail-shell {
+  position: relative;
+  max-width: 1180px;
+  margin: 0 auto;
+  background: rgba(8, 8, 8, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.detail-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detail-grid-divider {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detail-section {
+  padding: 28px 30px;
+}
+
+.detail-title {
+  color: rgba(255, 255, 255, 0.2);
+  font-family: var(--font-jetbrains-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.82rem;
+}
+
+.detail-copy {
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.7;
+}
+
+.detail-mono {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.detail-chart-wrap {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+}

@@ -1,21 +1,24 @@
 type QueryInputProps = {
   query: string;
-  asset: "BTC" | "ETH";
+  asset: string;
+  assets: string[];
   isLoading: boolean;
   onQueryChange: (value: string) => void;
-  onAssetChange: (value: "BTC" | "ETH") => void;
+  onAssetChange: (value: string) => void;
   onSubmit: (query: string) => void;
 };
 
 const EXAMPLE_PROMPTS = [
   "Should I long BTC right now?",
-  "What does the funding rate tell me about ETH?",
-  "Is BTC positioning overleveraged?",
+  "I have 0.001 BTC, should I sell?",
+  "What is BTC?",
+  "Explain funding rate in simple terms.",
 ];
 
 export default function QueryInput({
   query,
   asset,
+  assets,
   isLoading,
   onQueryChange,
   onAssetChange,
@@ -120,7 +123,7 @@ export default function QueryInput({
                 Awaiting Input_
               </span>
               <div className="flex items-center gap-2 border border-[#494847] bg-[rgba(19,19,19,0.35)] p-1">
-                {(["BTC", "ETH"] as const).map((item) => (
+                {assets.map((item) => (
                   <button
                     key={item}
                     type="button"

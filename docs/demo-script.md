@@ -33,7 +33,7 @@ On results:
 
 "Pacifica is the core data layer here. We use `GET /info/prices` for live mark price, funding, volume, and open interest, `GET /funding_rate/history` for the historical funding curve and percentile analysis, and `GET /kline/mark` for the mark-price series used in divergence detection."
 
-If demo mode is active:
+If fallback data is active:
 
 "Even when live APIs are unavailable, the app remains fully demoable using realistic Pacifica-shaped fallback data so judges can still evaluate the product experience end to end."
 

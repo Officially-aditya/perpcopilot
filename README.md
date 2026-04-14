@@ -1,12 +1,12 @@
 # PerpCopilot
 
-PerpCopilot is an AI trading copilot for Pacifica perpetual futures traders. It combines Pacifica market data, funding-rate analytics, recent news, and Claude-powered reasoning into a single Next.js 14 app that explains what current perp market structure means for a specific trade.
+PerpCopilot is an AI trading copilot for Pacifica perpetual futures traders. It combines Pacifica market data, funding-rate analytics, recent news, and Oxlo-powered reasoning into a single Next.js 14 app that explains what current perp market structure means for a specific trade.
 
 ## Stack
 
 - Framework: Next.js 14 App Router
 - UI: React, Tailwind CSS, Recharts
-- APIs: Pacifica REST API, Brave Search API, Anthropic Claude API
+- APIs: Pacifica REST API, Brave Search API, Oxlo API
 
 ## Setup
 
@@ -25,7 +25,9 @@ cp .env.local.example .env.local
 Fill in:
 
 ```env
-ANTHROPIC_API_KEY=
+OXLO_API_KEY=
+OXLO_MODEL=deepseek-v3.2
+OXLO_TIMEOUT_MS=35000
 BRAVE_API_KEY=
 PACIFICA_API_BASE=https://api.pacifica.fi/api/v1
 ```
@@ -42,9 +44,12 @@ The full app runs on:
 
 ## API Keys
 
-Anthropic:
-- Create an API key from the Anthropic Console
-- Paste it into `ANTHROPIC_API_KEY`
+Oxlo:
+- Create an API key in Oxlo
+- Paste it into `OXLO_API_KEY`
+- `OXLO_MODEL` defaults to `deepseek-v3.2`
+- `OXLO_TIMEOUT_MS` defaults to `35000` to give slower model runs time to return
+- Optionally change `OXLO_MODEL` if you want a different Oxlo-hosted model
 
 Brave Search:
 - Create a Brave Search API subscription
@@ -55,15 +60,15 @@ Pacifica:
 - `PACIFICA_API_BASE` defaults to mainnet `https://api.pacifica.fi/api/v1`
 - The app accepts either `https://api.pacifica.fi` or `https://api.pacifica.fi/api/v1` and normalizes both safely
 
-## Demo Mode
+## Resilient Fallback Data
 
 The app is designed to remain demoable even if external services fail.
 
 - Pacifica unavailable: realistic mock BTC and ETH funding and price histories are used automatically
 - Brave unavailable: the app skips headlines and continues the analysis flow
-- Claude unavailable: the query route falls back to a deterministic recommendation generator with the same JSON shape
+- Oxlo unavailable: the query route falls back to a deterministic recommendation generator with the same JSON shape
 
-When Pacifica falls back, the UI shows a demo-mode banner.
+When Pacifica falls back, the UI shows a fallback-data banner.
 
 ## Project Structure
 
@@ -115,5 +120,5 @@ PerpCopilot turns Pacifica into an explainable trading workstation instead of a 
 
 ## Judge Notes
 
-- The app is designed to be demo-safe. If Pacifica, Brave, or Anthropic are unavailable during a presentation, the product still completes an end-to-end walkthrough instead of failing on stage.
+- The app is designed to be demo-safe. If Pacifica, Brave, or Oxlo are unavailable during a presentation, the product still completes an end-to-end walkthrough instead of failing on stage.
 - The results screen includes a dedicated Pacifica integration section so judges can immediately see which endpoints power which insights.

@@ -19,7 +19,13 @@ function fundingClass(ratePct) {
   return "text-red";
 }
 
-export default function MetricsBar({ asset, market }) {
+function scoreClass(score) {
+  if (score >= 20) return "text-green";
+  if (score <= -20) return "text-red";
+  return "text-amber";
+}
+
+export default function MetricsBar({ asset, market, analysis }) {
   const ratePct = market.currentFundingRate * 100;
   const items = [
     { label: "Asset", value: asset },
@@ -31,10 +37,15 @@ export default function MetricsBar({ asset, market }) {
     },
     { label: "24h Volume", value: formatCompact(market.volume24h) },
     { label: "Open Interest", value: formatCompact(market.openInterest) },
+    {
+      label: "Structure",
+      value: `${analysis.marketBias.toUpperCase()} ${analysis.marketStructureScore > 0 ? "+" : ""}${analysis.marketStructureScore}`,
+      className: scoreClass(analysis.marketStructureScore),
+    },
   ];
 
   return (
-    <div className="grid md:grid-cols-5">
+    <div className="grid md:grid-cols-6">
       {items.map((item, index) => (
         <div
           key={item.label}

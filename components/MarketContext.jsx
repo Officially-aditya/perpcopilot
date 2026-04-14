@@ -3,7 +3,7 @@ export default function MarketContext({ context, news, demoMode }) {
     <section className="detail-section">
       <div className="mb-8 flex items-center justify-between gap-4">
         <p className="detail-title">Market Context</p>
-        {demoMode ? <div className="detail-title text-[#00e3fd]">Demo mode</div> : null}
+        {demoMode ? <div className="detail-title text-[#00e3fd]">Fallback Data Active</div> : null}
       </div>
 
       <p className="mb-10 max-w-5xl text-[1.02rem] leading-8 text-[rgba(255,255,255,0.72)]">

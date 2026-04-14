@@ -1,5 +1,8 @@
 const PILL_STYLES = {
+  BUY: "border-[#1e5c36] bg-[rgba(0,255,65,0.14)] text-[#6ef08d]",
   LONG: "border-[#1e5c36] bg-[rgba(0,255,65,0.14)] text-[#6ef08d]",
+  REDUCE: "border-[rgba(255,171,0,0.22)] bg-[rgba(255,171,0,0.12)] text-[#ffbf47]",
+  SELL: "border-[rgba(255,115,81,0.24)] bg-[rgba(255,115,81,0.14)] text-[#ff7351]",
   SHORT: "border-[rgba(255,115,81,0.2)] bg-[rgba(255,115,81,0.12)] text-[#ff7351]",
   AVOID: "border-[#1e5c36] bg-[rgba(0,255,65,0.12)] text-[#6ef08d]",
   HOLD: "border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.03)] text-white",
@@ -16,7 +19,7 @@ export default function RecommendationCard({ recommendation }) {
     <section className="detail-section md:grid md:grid-cols-[180px_1fr] md:gap-10">
       <div className="mb-6 md:mb-0">
         <div
-          className={`detail-mono inline-flex min-w-[164px] items-center justify-center border px-8 py-5 text-4xl font-semibold uppercase tracking-[0.16em] ${PILL_STYLES[recommendation.recommendation]}`}
+          className={`detail-mono inline-flex min-w-[164px] items-center justify-center border px-8 py-5 text-4xl font-semibold uppercase tracking-[0.16em] ${PILL_STYLES[recommendation.recommendation] || PILL_STYLES.HOLD}`}
         >
           {recommendation.recommendation}
         </div>

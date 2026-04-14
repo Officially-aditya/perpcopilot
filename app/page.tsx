@@ -22,9 +22,13 @@ type HistoricalComparison = {
 type Analysis = {
   percentile: number;
   historicalComparisons: HistoricalComparison[];
+  marketBias: string;
+  marketStructureScore: number;
 };
 
 type Recommendation = {
+  recommendation: string;
+  confidence: string;
   suggested_entry: string | null;
   suggested_stop_loss: string | null;
   time_horizon: string;
@@ -37,18 +41,34 @@ type Recommendation = {
   risk_factors: string[];
 };
 
+type Explainer = {
+  title: string;
+  summary: string;
+  key_points: string[];
+  market_hook: string | null;
+  follow_ups: string[];
+};
+
 type ResultData = {
+  query: string;
+  queryMode: "market_analysis" | "explainer";
+  queryIntent: "trade_entry" | "position_management";
   asset: string;
   market: {
     currentPrice: number;
     currentFundingRate: number;
   };
   analysis: Analysis;
-  recommendation: Recommendation;
+  recommendation: Recommendation | null;
+  explainer: Explainer | null;
   comparison: unknown;
   news: unknown[];
   meta: {
     demoMode: boolean;
+    aiSource: string;
+    aiModel: string;
+    aiError: string | null;
+    availableAssets?: string[];
   };
 };
 
@@ -65,6 +85,14 @@ function formatSigned(value: number) {
 }
 
 function HistoricalComparisonTable({ analysis }: { analysis: Analysis }) {
+  if (!analysis.historicalComparisons.length) {
+    return (
+      <div className="py-6 text-sm uppercase tracking-[0.16em] text-[rgba(255,255,255,0.34)]">
+        No close historical funding analogs were found in the current 30-day sample.
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full border-collapse text-left">
@@ -95,6 +123,8 @@ function HistoricalComparisonTable({ analysis }: { analysis: Analysis }) {
 }
 
 function FundingInsightCard({ result }: { result: ResultData }) {
+  const percentileOrdinal = `${result.analysis.percentile}th`;
+
   return (
     <section className="console-section p-8">
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -104,7 +134,7 @@ function FundingInsightCard({ result }: { result: ResultData }) {
         </div>
         <div className="text-right">
           <p className="console-kicker mb-1">Current Percentile</p>
-          <p className="console-monodata text-2xl text-[#9cff93]">{result.analysis.percentile}th</p>
+          <p className="console-monodata text-2xl text-[#9cff93]">{percentileOrdinal}</p>
         </div>
       </div>
 
@@ -117,21 +147,35 @@ function FundingInsightCard({ result }: { result: ResultData }) {
   );
 }
 
-function TradeSetupCard({ recommendation }: { recommendation: Recommendation }) {
+function TradeSetupCard({
+  recommendation,
+  queryIntent,
+}: {
+  recommendation: Recommendation;
+  queryIntent: "trade_entry" | "position_management";
+}) {
+  const isPositionManagement = queryIntent === "position_management";
+  const primaryLabel = isPositionManagement ? "Action Zone" : "Suggested Entry";
+  const stopLabel = isPositionManagement ? "Invalidation Level" : "Stop Loss";
+  const title = isPositionManagement ? "Position Plan" : "Execution Framing";
+  const primaryValue =
+    recommendation.suggested_entry ||
+    (isPositionManagement ? "Maintain current size unless conditions change" : "Stand aside");
+
   return (
     <section className="console-section h-full p-8">
       <p className="console-kicker mb-2">Trade Setup</p>
-      <h3 className="console-headline mb-10 text-textPrimary">Execution Framing</h3>
+      <h3 className="console-headline mb-10 text-textPrimary">{title}</h3>
 
       <div className="console-subvoid">
         <div>
-          <p className="console-kicker mb-2">Suggested Entry</p>
+          <p className="console-kicker mb-2">{primaryLabel}</p>
           <p className="text-lg text-textPrimary">
-            {recommendation.suggested_entry || "Stand aside"}
+            {primaryValue}
           </p>
         </div>
         <div>
-          <p className="console-kicker mb-2">Stop Loss</p>
+          <p className="console-kicker mb-2">{stopLabel}</p>
           <p className="text-lg text-textPrimary">
             {recommendation.suggested_stop_loss || "N/A"}
           </p>
@@ -145,6 +189,112 @@ function TradeSetupCard({ recommendation }: { recommendation: Recommendation }) 
         <p className="console-kicker text-[#777575]">AI-generated analysis. Not financial advice.</p>
       </div>
     </section>
+  );
+}
+
+function ExplainerHero({ explainer }: { explainer: Explainer }) {
+  return (
+    <section className="detail-section md:grid md:grid-cols-[240px_1fr] md:gap-10">
+      <div className="mb-6 md:mb-0">
+        <div className="detail-mono inline-flex min-w-[200px] items-center justify-center border border-[rgba(0,227,253,0.25)] bg-[rgba(0,227,253,0.08)] px-8 py-5 text-xl font-semibold uppercase tracking-[0.16em] text-[#7defff]">
+          Explain
+        </div>
+      </div>
+      <div>
+        <div className="mb-4">
+          <span className="detail-title text-[rgba(255,255,255,0.38)]">{explainer.title}</span>
+        </div>
+        <p className="max-w-4xl text-[1.05rem] leading-10 text-[rgba(255,255,255,0.72)]">
+          {explainer.summary}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function ExplainerDetails({
+  explainer,
+  marketContext,
+  news,
+  demoMode,
+}: {
+  explainer: Explainer;
+  marketContext: string;
+  news: unknown[];
+  demoMode: boolean;
+}) {
+  return (
+    <>
+      <div className="detail-divider grid lg:grid-cols-[1fr_1fr]">
+        <section className="console-section p-8 detail-grid-divider">
+          <p className="console-kicker mb-2">Key Points</p>
+          <div className="console-subvoid">
+            {explainer.key_points.map((point) => (
+              <p key={point} className="text-base leading-8 text-[rgba(255,255,255,0.8)]">
+                {point}
+              </p>
+            ))}
+          </div>
+        </section>
+        <section className="console-section p-8">
+          <p className="console-kicker mb-2">Market Hook</p>
+          <h3 className="console-headline mb-8 text-textPrimary">Why It Matters Now</h3>
+          <p className="text-base leading-8 text-[rgba(255,255,255,0.8)]">
+            {explainer.market_hook || "This answer was primarily conceptual, so live market context is secondary."}
+          </p>
+        </section>
+      </div>
+
+      <div className="detail-divider grid lg:grid-cols-[1fr_1fr]">
+        <section className="console-section p-8 detail-grid-divider">
+          <p className="console-kicker mb-2">Suggested Follow-Ups</p>
+          <div className="console-subvoid">
+            {explainer.follow_ups.map((item) => (
+              <p key={item} className="text-base leading-8 text-[rgba(255,255,255,0.8)]">
+                {item}
+              </p>
+            ))}
+          </div>
+        </section>
+        <MarketContext
+          context={marketContext}
+          news={news}
+          demoMode={demoMode}
+        />
+      </div>
+    </>
+  );
+}
+
+function ModelStatus({
+  aiSource,
+  aiModel,
+  aiError,
+}: {
+  aiSource: string;
+  aiModel: string;
+  aiError: string | null;
+}) {
+  const isLiveModel = aiSource === "oxlo";
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em]">
+      <span
+        className={
+          isLiveModel
+            ? "detail-mono text-[#9cff93]"
+            : "detail-mono text-[#ff7351]"
+        }
+      >
+        LLM {isLiveModel ? "Oxlo Live" : "Heuristic Fallback"}
+      </span>
+      <span className="detail-mono text-[rgba(255,255,255,0.38)]">{aiModel}</span>
+      {aiError ? (
+        <span className="detail-mono text-[rgba(255,255,255,0.32)]">
+          {aiError}
+        </span>
+      ) : null}
+    </div>
   );
 }
 
@@ -170,7 +320,8 @@ function ErrorCard({ error, onRetry }: { error: string; onRetry: () => void }) {
 }
 
 export default function Page() {
-  const [asset, setAsset] = useState<"BTC" | "ETH">("BTC");
+  const [asset, setAsset] = useState("BTC");
+  const [availableAssets, setAvailableAssets] = useState<string[]>(["BTC", "ETH"]);
   const [query, setQuery] = useState("Should I long BTC right now?");
   const [view, setView] = useState("input");
   const [loadingStage, setLoadingStage] = useState(0);
@@ -187,6 +338,32 @@ export default function Page() {
 
     return () => window.clearInterval(interval);
   }, [view]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadAssets() {
+      try {
+        const response = await fetch("/api/market");
+        const json = await response.json();
+        if (!response.ok || !json.success) return;
+
+        const nextAssets = json?.data?.meta?.availableAssets || json?.meta?.availableAssets;
+        if (isMounted && Array.isArray(nextAssets) && nextAssets.length) {
+          setAvailableAssets(nextAssets);
+          setAsset((current) => (nextAssets.includes(current) ? current : nextAssets[0]));
+        }
+      } catch (_error) {
+        // Keep fallback assets if market bootstrap fails.
+      }
+    }
+
+    loadAssets();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   async function handleSubmit(nextQuery: string) {
     const payload = {
@@ -249,6 +426,7 @@ export default function Page() {
       <QueryInput
         query={query}
         asset={asset}
+        assets={availableAssets}
         isLoading={false}
         onQueryChange={setQuery}
         onAssetChange={setAsset}
@@ -268,6 +446,13 @@ export default function Page() {
             <p className="detail-mono text-sm uppercase tracking-[0.16em] text-[rgba(255,255,255,0.26)]">
               Detail View
             </p>
+            <div className="mt-3">
+              <ModelStatus
+                aiSource={result.meta.aiSource}
+                aiModel={result.meta.aiModel}
+                aiError={result.meta.aiError}
+              />
+            </div>
           </div>
           <button
             type="button"
@@ -282,57 +467,77 @@ export default function Page() {
         </div>
 
         <div className="detail-shell">
-          <MetricsBar asset={result.asset} market={result.market} />
+          <MetricsBar asset={result.asset} market={result.market} analysis={result.analysis} />
 
-          <div className="detail-divider">
-            <RecommendationCard recommendation={result.recommendation} />
-          </div>
+          {result.queryMode === "market_analysis" && result.recommendation ? (
+            <>
+              <div className="detail-divider">
+                <RecommendationCard recommendation={result.recommendation} />
+              </div>
 
-          <div className="detail-divider grid lg:grid-cols-[1fr_1fr]">
-            <div className="detail-grid-divider">
-              <FundingRateChart
-                market={result.market}
-                analysis={result.analysis}
-                annotation={result.recommendation.chart_annotation}
+              <div className="detail-divider grid lg:grid-cols-[1fr_1fr]">
+                <div className="detail-grid-divider">
+                  <FundingRateChart
+                    market={result.market}
+                    analysis={result.analysis}
+                    annotation={result.recommendation.chart_annotation}
+                  />
+                </div>
+                <FundingInsightCard result={result as ResultData} />
+              </div>
+
+              <div className="detail-divider grid lg:grid-cols-[1fr_1fr]">
+                <div className="detail-grid-divider">
+                  <PriceFundingDivergenceChart
+                    market={result.market}
+                    analysis={result.analysis}
+                    insight={result.recommendation.divergence_insight}
+                  />
+                </div>
+                <RiskFactors items={result.recommendation.risk_factors} />
+              </div>
+
+              <div className="detail-divider">
+                <CrossAssetChart
+                  asset={result.asset}
+                  comparison={result.comparison}
+                  insight={result.recommendation.cross_asset_insight}
+                />
+              </div>
+
+              <div className="detail-divider">
+                <MarketContext
+                  context={result.recommendation.market_context}
+                  news={result.news}
+                  demoMode={result.meta.demoMode}
+                />
+              </div>
+
+              <div className="detail-divider">
+                <TradeSetupCard
+                  recommendation={result.recommendation}
+                  queryIntent={result.queryIntent}
+                />
+              </div>
+            </>
+          ) : result.explainer ? (
+            <>
+              <div className="detail-divider">
+                <ExplainerHero explainer={result.explainer} />
+              </div>
+              <ExplainerDetails
+                explainer={result.explainer}
+                marketContext={result.explainer.market_hook || "The current Pacifica market snapshot is shown above for reference."}
+                news={result.news}
+                demoMode={result.meta.demoMode}
               />
-            </div>
-            <FundingInsightCard result={result} />
-          </div>
-
-          <div className="detail-divider grid lg:grid-cols-[1fr_1fr]">
-            <div className="detail-grid-divider">
-              <PriceFundingDivergenceChart
-                market={result.market}
-                analysis={result.analysis}
-                insight={result.recommendation.divergence_insight}
-              />
-            </div>
-            <RiskFactors items={result.recommendation.risk_factors} />
-          </div>
-
-          <div className="detail-divider">
-            <CrossAssetChart
-              comparison={result.comparison}
-              insight={result.recommendation.cross_asset_insight}
-            />
-          </div>
-
-          <div className="detail-divider">
-            <MarketContext
-              context={result.recommendation.market_context}
-              news={result.news}
-              demoMode={result.meta.demoMode}
-            />
-          </div>
-
-          <div className="detail-divider">
-            <TradeSetupCard recommendation={result.recommendation} />
-          </div>
+            </>
+          ) : null}
         </div>
 
         {result.meta.demoMode ? (
           <div className="mx-auto mt-4 max-w-[1180px] text-sm text-[#ff7351]">
-            Demo mode is active because live Pacifica data was unavailable.
+            Live Pacifica data was unavailable, so the analysis is currently using resilient fallback market data.
           </div>
         ) : null}
       </div>

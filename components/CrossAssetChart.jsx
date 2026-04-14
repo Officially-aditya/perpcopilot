@@ -10,17 +10,28 @@ import {
   YAxis,
 } from "recharts";
 
-function buildData(comparison) {
-  const btcHistory = comparison.BTC.fundingHistory.slice(-14);
+function buildData(comparison, asset) {
+  const baseHistory = (comparison[asset] || comparison.BTC).fundingHistory.slice(-14);
+  const btcByTimestamp = new Map(
+    comparison.BTC.fundingHistory.slice(-14).map((point) => [point.timestamp, point])
+  );
   const ethByTimestamp = new Map(
     comparison.ETH.fundingHistory.slice(-14).map((point) => [point.timestamp, point])
   );
+  const selectedByTimestamp = new Map(
+    (comparison[asset] || comparison.BTC).fundingHistory
+      .slice(-14)
+      .map((point) => [point.timestamp, point])
+  );
 
-  return btcHistory.map((btcPoint) => {
-    const ethPoint = ethByTimestamp.get(btcPoint.timestamp);
+  return baseHistory.map((point) => {
+    const btcPoint = btcByTimestamp.get(point.timestamp);
+    const ethPoint = ethByTimestamp.get(point.timestamp);
+    const selectedPoint = selectedByTimestamp.get(point.timestamp);
     return {
-      label: btcPoint.label,
-      btcRatePct: btcPoint.ratePct,
+      label: point.label,
+      selectedRatePct: selectedPoint?.ratePct ?? null,
+      btcRatePct: btcPoint?.ratePct ?? null,
       ethRatePct: ethPoint?.ratePct ?? null,
     };
   });
@@ -42,17 +53,27 @@ function TooltipBody({ active, payload, label }) {
   );
 }
 
-export default function CrossAssetChart({ comparison, insight }) {
-  const data = buildData(comparison);
-  const crowdedAsset =
-    comparison.BTC.currentFundingRate > comparison.ETH.currentFundingRate ? "BTC" : "ETH";
+function formatRate(rate) {
+  const value = (rate * 100).toFixed(3);
+  return `${rate > 0 ? "+" : ""}${value}%`;
+}
+
+export default function CrossAssetChart({ asset, comparison, insight }) {
+  const data = buildData(comparison, asset);
+  const displaySelectedLine = asset !== "BTC" && asset !== "ETH";
+  const displayedAssets = displaySelectedLine ? [asset, "BTC", "ETH"] : ["BTC", "ETH"];
+  const crowdedAsset = displayedAssets.reduce((leader, symbol) =>
+    comparison[symbol].currentFundingRate > comparison[leader].currentFundingRate ? symbol : leader
+  );
 
   return (
     <section className="detail-section">
       <div className="mb-5 flex flex-col gap-3">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="detail-title mb-2">BTC vs ETH — Funding Comparison (14 Days)</p>
+            <p className="detail-title mb-2">
+              {displaySelectedLine ? `${asset} vs BTC/ETH — Funding Comparison (14 Days)` : "BTC vs ETH — Funding Comparison (14 Days)"}
+            </p>
           </div>
         </div>
       </div>
@@ -75,6 +96,17 @@ export default function CrossAssetChart({ comparison, insight }) {
               axisLine={false}
             />
             <Tooltip content={<TooltipBody />} />
+            {displaySelectedLine ? (
+              <Line
+                type="monotone"
+                dataKey="selectedRatePct"
+                name={asset}
+                stroke="#9cff93"
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive
+              />
+            ) : null}
             <Line
               type="monotone"
               dataKey="btcRatePct"
@@ -98,8 +130,13 @@ export default function CrossAssetChart({ comparison, insight }) {
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap gap-6 text-sm">
-          <span className="detail-mono text-[#d7d7d7]">— BTC +{(comparison.BTC.currentFundingRate * 100).toFixed(3)}%</span>
-          <span className="detail-mono text-[#d89e22]">— ETH +{(comparison.ETH.currentFundingRate * 100).toFixed(3)}%</span>
+          {displaySelectedLine ? (
+            <span className="detail-mono text-[#9cff93]">
+              — {asset} {formatRate(comparison[asset].currentFundingRate)}
+            </span>
+          ) : null}
+          <span className="detail-mono text-[#d7d7d7]">— BTC {formatRate(comparison.BTC.currentFundingRate)}</span>
+          <span className="detail-mono text-[#d89e22]">— ETH {formatRate(comparison.ETH.currentFundingRate)}</span>
         </div>
         <div className="detail-mono bg-[rgba(90,20,20,0.42)] px-4 py-2 text-[#ff5a4a]">
           {crowdedAsset} more crowded

@@ -72,6 +72,16 @@ type ResultData = {
   };
 };
 
+type ScannerItem = {
+  id: string;
+  label: string;
+  asset: string;
+  value: string;
+  tone: string;
+  detail: string;
+  prompt: string;
+};
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -322,6 +332,7 @@ function ErrorCard({ error, onRetry }: { error: string; onRetry: () => void }) {
 export default function Page() {
   const [asset, setAsset] = useState("BTC");
   const [availableAssets, setAvailableAssets] = useState<string[]>(["BTC", "ETH"]);
+  const [scanner, setScanner] = useState<ScannerItem[]>([]);
   const [query, setQuery] = useState("Should I long BTC right now?");
   const [view, setView] = useState("input");
   const [loadingStage, setLoadingStage] = useState(0);
@@ -349,9 +360,13 @@ export default function Page() {
         if (!response.ok || !json.success) return;
 
         const nextAssets = json?.data?.meta?.availableAssets || json?.meta?.availableAssets;
+        const nextScanner = json?.data?.scanner;
         if (isMounted && Array.isArray(nextAssets) && nextAssets.length) {
           setAvailableAssets(nextAssets);
           setAsset((current) => (nextAssets.includes(current) ? current : nextAssets[0]));
+        }
+        if (isMounted && Array.isArray(nextScanner)) {
+          setScanner(nextScanner);
         }
       } catch (_error) {
         // Keep fallback assets if market bootstrap fails.
@@ -427,9 +442,14 @@ export default function Page() {
         query={query}
         asset={asset}
         assets={availableAssets}
+        scanner={scanner}
         isLoading={false}
         onQueryChange={setQuery}
         onAssetChange={setAsset}
+        onScannerSelect={(item) => {
+          setAsset(item.asset);
+          setQuery(item.prompt);
+        }}
         onSubmit={handleSubmit}
       />
     );

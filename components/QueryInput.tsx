@@ -1,10 +1,25 @@
+import MarketScanner from "./MarketScanner.jsx";
+
 type QueryInputProps = {
   query: string;
   asset: string;
   assets: string[];
+  scanner: Array<{
+    id: string;
+    label: string;
+    asset: string;
+    value: string;
+    tone: string;
+    detail: string;
+    prompt: string;
+  }>;
   isLoading: boolean;
   onQueryChange: (value: string) => void;
   onAssetChange: (value: string) => void;
+  onScannerSelect: (item: {
+    asset: string;
+    prompt: string;
+  }) => void;
   onSubmit: (query: string) => void;
 };
 
@@ -19,9 +34,11 @@ export default function QueryInput({
   query,
   asset,
   assets,
+  scanner,
   isLoading,
   onQueryChange,
   onAssetChange,
+  onScannerSelect,
   onSubmit,
 }: QueryInputProps) {
   return (
@@ -53,30 +70,6 @@ export default function QueryInput({
           <h1 className="mb-16 w-full text-left font-['Space_Grotesk'] text-4xl font-bold uppercase leading-none tracking-[0.05em] text-[#9cff93] md:text-center md:text-6xl lg:text-8xl">
             Execute Query &gt;<span className="animate-pulse">_</span>
           </h1>
-
-          <div className="mb-10 flex w-full flex-col gap-4 text-left font-['Space_Grotesk'] text-xs uppercase tracking-[0.2em] text-[#777575] md:mb-16 md:text-center md:text-sm">
-            <span className="text-[#00e3fd]">Suggested Vectors:</span>
-            <p>
-              ANALYZE BTC-PERP LIQUIDITY
-              <span className="mx-2 text-[#494847]">::</span>
-              BACKTEST VOLATILITY HEDGE
-              <span className="mx-2 text-[#494847]">::</span>
-              EXPLAIN FUNDING RATE SPIKE
-            </p>
-          </div>
-
-          <div className="mb-8 flex w-full max-w-4xl flex-wrap gap-3">
-            {EXAMPLE_PROMPTS.map((prompt) => (
-              <button
-                key={prompt}
-                type="button"
-                onClick={() => onQueryChange(prompt)}
-                className="border border-[#494847] bg-[rgba(19,19,19,0.55)] px-3 py-2 text-left font-['Space_Grotesk'] text-[11px] uppercase tracking-[0.22em] text-[#adaaaa] transition hover:border-[#9cff93] hover:text-[#9cff93]"
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
 
           <form
             className="group relative w-full max-w-4xl"
@@ -116,6 +109,30 @@ export default function QueryInput({
             <div className="absolute bottom-0 left-0 h-[1px] w-full bg-[#9cff93] opacity-0 shadow-[0_0_15px_rgba(156,255,147,0.8)] transition-opacity duration-300 group-focus-within:opacity-100" />
           </form>
 
+          <div className="mt-10 flex w-full max-w-4xl flex-col gap-4 text-left font-['Space_Grotesk'] text-xs uppercase tracking-[0.2em] text-[#777575] md:text-center md:text-sm">
+            <span className="text-[#00e3fd]">Suggested Vectors:</span>
+            <p>
+              ANALYZE BTC-PERP LIQUIDITY
+              <span className="mx-2 text-[#494847]">::</span>
+              BACKTEST VOLATILITY HEDGE
+              <span className="mx-2 text-[#494847]">::</span>
+              EXPLAIN FUNDING RATE SPIKE
+            </p>
+          </div>
+
+          <div className="mt-6 flex w-full max-w-4xl flex-wrap gap-3">
+            {EXAMPLE_PROMPTS.map((prompt) => (
+              <button
+                key={prompt}
+                type="button"
+                onClick={() => onQueryChange(prompt)}
+                className="border border-[#494847] bg-[rgba(19,19,19,0.55)] px-3 py-2 text-left font-['Space_Grotesk'] text-[11px] uppercase tracking-[0.22em] text-[#adaaaa] transition hover:border-[#9cff93] hover:text-[#9cff93]"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+
           <div className="mt-8 flex w-full max-w-4xl flex-col gap-5 font-['Space_Grotesk'] text-[10px] uppercase tracking-[0.22em] text-[#777575] md:flex-row md:items-center md:justify-between md:text-xs">
             <div className="flex items-center gap-4">
               <span className="inline-flex items-center gap-2">
@@ -144,6 +161,8 @@ export default function QueryInput({
               SYS_MEM: 42% <span className="mx-2 text-[rgba(119,117,117,0.35)]">|</span> LATENCY: 12ms
             </span>
           </div>
+
+          <MarketScanner items={scanner} onSelect={onScannerSelect} />
         </div>
       </main>
 
